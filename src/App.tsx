@@ -1,7 +1,13 @@
 import './App.css';
+import Currency from './components/Currency';
 
 function App() {
-    return <h1>Hello World</h1>;
+    return (
+        <div>
+            <Currency inputType="from" />
+            <Currency inputType="to" />
+        </div>
+    );
 }
 
 export default App;
