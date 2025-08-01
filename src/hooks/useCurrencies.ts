@@ -3,6 +3,7 @@ import type { State, Action } from '../types';
 import axios from 'axios';
 import { usePrevious } from './usePrevious';
 import { convert } from '../utils/converter';
+import { normalizeValue } from '../utils/utils';
 
 export function useCurrencies(state: State, dispatch: React.Dispatch<Action>) {
     const previousState = usePrevious(state);
@@ -35,7 +36,8 @@ export function useCurrencies(state: State, dispatch: React.Dispatch<Action>) {
     }, [dispatch]);
 
     useEffect(() => {
-        const normalizeValue = (value: string): number => parseFloat(value);
+        let isUpdatingFrom = false;
+        let isUpdatingTo = false;
 
         const fromChanged =
             normalizeValue(previousState?.from[0] || '0') !==
@@ -47,7 +49,13 @@ export function useCurrencies(state: State, dispatch: React.Dispatch<Action>) {
                 normalizeValue(state.to[0]) ||
             previousState?.to[1] !== state.to[1];
 
-        if (fromChanged) {
+        if (
+            fromChanged &&
+            state.currencies &&
+            normalizeValue(state.from[0]) !== 0 &&
+            !isUpdatingTo
+        ) {
+            isUpdatingFrom = true;
             console.log('From changed:', state.from);
             convert(
                 state.from[1],
@@ -66,10 +74,17 @@ export function useCurrencies(state: State, dispatch: React.Dispatch<Action>) {
                         payload: [result, state.to[1]],
                     });
                 }
+                isUpdatingFrom = false;
             });
         }
 
-        if (toChanged) {
+        if (
+            toChanged &&
+            state.currencies &&
+            normalizeValue(state.to[0]) !== 0 &&
+            !isUpdatingFrom
+        ) {
+            isUpdatingTo = true;
             console.log('To changed:', state.to);
             convert(
                 state.to[1],
@@ -88,6 +103,7 @@ export function useCurrencies(state: State, dispatch: React.Dispatch<Action>) {
                         payload: [result, state.from[1]],
                     });
                 }
+                isUpdatingTo = false;
             });
         }
     }, [state, state.currencies, dispatch]);

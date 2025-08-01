@@ -1,6 +1,5 @@
 import { useContext } from 'react';
 import { GlobalContext } from '../contexts/GlobalContextProvider.tsx';
-import { useDebounce } from '../hooks/useDebounce.ts';
 
 type CurrencyProps = {
     inputType: 'from' | 'to';
@@ -9,28 +8,24 @@ type CurrencyProps = {
 export default function Currency({ inputType }: CurrencyProps) {
     const { state, dispatch } = useContext(GlobalContext);
 
-    const debouncedHandleSetCurrency = useDebounce(
-        (type: 'from' | 'to', value: [string, string]) => {
-            dispatch({
-                type: type === 'from' ? 'SET_FROM' : 'SET_TO',
-                payload: value,
-            });
-        },
-        300
-    );
+    function handleSetCurrency(type: 'from' | 'to', value: [string, string]) {
+        dispatch({
+            type: type === 'from' ? 'SET_FROM' : 'SET_TO',
+            payload: value,
+        });
+    }
 
     function handleInputChange(value: string, type: 'input' | 'select') {
         if (type === 'input') {
-            // let cleanValue = value.replace(/[^0-9.,]/g, ''); // Remove invalid characters
-            // cleanValue = cleanValue.replace(',', '.'); // Replace commas with dots
+            let cleanValue = value.replace(/[^0-9.,]/g, ''); // Remove invalid characters
+            cleanValue = cleanValue.replace(',', '.'); // Replace commas with dots
 
-            // Use the cleaned value directly without reformatting
-            debouncedHandleSetCurrency(inputType, [value, state[inputType][1]]);
+            handleSetCurrency(inputType, [cleanValue, state[inputType][1]]);
             return;
         }
 
         if (type === 'select') {
-            debouncedHandleSetCurrency(inputType, [state[inputType][0], value]);
+            handleSetCurrency(inputType, [state[inputType][0], value]);
         }
     }
 
